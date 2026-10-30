@@ -1,0 +1,39 @@
+# Opt-in public endpoint. Replace certificate ARN + host before applying (docs/aws.md).
+# HTTPS only: write tokens must not travel over plain HTTP across the public internet.
+apiVersion: eks.amazonaws.com/v1
+kind: IngressClassParams
+metadata: { name: shipyard-alb }
+spec:
+  scheme: internet-facing
+  targetType: ip
+  certificateARNs: [REPLACE_WITH_ACM_CERTIFICATE_ARN]
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata: { name: shipyard-alb }
+spec:
+  controller: eks.amazonaws.com/alb
+  parameters:
+    {
+      apiGroup: eks.amazonaws.com,
+      kind: IngressClassParams,
+      name: shipyard-alb,
+    }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shipyard
+  namespace: shipyard
+  annotations:
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+spec:
+  ingressClassName: shipyard-alb
+  rules:
+    - host: REPLACE_WITH_YOUR_DOMAIN
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: web, port: { number: 8080 } } }

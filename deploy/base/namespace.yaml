@@ -1,0 +1,7 @@
+# All app resources share this namespace; monitoring and Argo CD use separate namespaces.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shipyard
+  labels:
+    app.kubernetes.io/part-of: shipyard

@@ -1,0 +1,14 @@
+# EKS Auto Mode uses this provisioner (different from the standard EBS CSI driver).
+# Retain prevents automatic deletion of data when a PVC is removed. See teardown runbook.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata: { name: shipyard-gp3 }
+provisioner: ebs.csi.eks.amazonaws.com
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+parameters: { type: gp3, encrypted: "true" }
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: eks.amazonaws.com/compute-type
+        values: [auto]

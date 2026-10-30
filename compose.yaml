@@ -1,0 +1,49 @@
+# Local three-tier environment. scripts/setup.mjs generates the ignored .env first.
+# Expose only localhost; MongoDB and the API remain on Docker's internal service network.
+name: shipyard
+services:
+  mongo:
+    image: mongo:8.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Run node scripts/setup.mjs}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:?Run node scripts/setup.mjs}
+    volumes:
+      - mongo-data:/data/db
+      - ./ops/mongo-init.js:/docker-entrypoint-initdb.d/01-shipyard.js:ro
+    healthcheck:
+      test:
+        [
+          CMD-SHELL,
+          'mongosh --quiet --username root --password "$$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "db.adminCommand({ping:1}).ok" | grep 1',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  api:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    environment:
+      MONGODB_URI: mongodb://shipyard:${MONGO_APP_PASSWORD:?Run setup}@mongo:27017/shipyard?authSource=shipyard
+      WRITE_TOKEN: ${WRITE_TOKEN:?Run setup}
+      APP_VERSION: ${APP_VERSION:-local}
+      NODE_ENV: production
+    depends_on:
+      mongo: { condition: service_healthy }
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    restart: unless-stopped
+  web:
+    build: { context: ., dockerfile: apps/web/Dockerfile }
+    ports: [127.0.0.1:8080:8080]
+    depends_on:
+      api: { condition: service_healthy }
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    restart: unless-stopped
+volumes:
+  mongo-data:

@@ -1,0 +1,84 @@
+# A single MongoDB member with persistent storage: suitable for a portfolio, NOT database HA.
+# PVC retention survives pod recreation. Backups and node/AZ failure are separate concerns.
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: mongo-init }
+data:
+  01-shipyard.js: |
+    // Keep in sync with ops/mongo-init.js: scope the API account to one database.
+    db.getSiblingDB('shipyard').createUser({
+      user: 'shipyard',
+      pwd: process.env.MONGO_APP_PASSWORD,
+      roles: [{ role: 'readWrite', db: 'shipyard' }],
+    });
+---
+apiVersion: v1
+kind: Service
+metadata: { name: mongo }
+spec:
+  clusterIP: None
+  selector: { app: mongo }
+  ports: [{ name: mongo, port: 27017, targetPort: 27017 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: mongo }
+spec:
+  serviceName: mongo
+  replicas: 1
+  selector:
+    matchLabels: { app: mongo }
+  template:
+    metadata:
+      labels: { app: mongo }
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        {
+          runAsNonRoot: true,
+          runAsUser: 999,
+          runAsGroup: 999,
+          fsGroup: 999,
+          seccompProfile: { type: RuntimeDefault },
+        }
+      containers:
+        - name: mongo
+          image: mongo:8.0
+          ports: [{ containerPort: 27017 }]
+          envFrom: [{ secretRef: { name: mongo-secrets } }]
+          securityContext:
+            { allowPrivilegeEscalation: false, capabilities: { drop: [ALL] } }
+          resources:
+            requests: { cpu: 250m, memory: 256Mi }
+            limits: { cpu: "1", memory: 768Mi }
+          startupProbe:
+            tcpSocket: { port: 27017 }
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                [
+                  sh,
+                  -c,
+                  'mongosh --quiet --username root --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "db.adminCommand({ping:1}).ok"',
+                ]
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - { name: data, mountPath: /data/db }
+            - { name: configdb, mountPath: /data/configdb }
+            - {
+                name: init,
+                mountPath: /docker-entrypoint-initdb.d,
+                readOnly: true,
+              }
+      volumes:
+        - { name: init, configMap: { name: mongo-init } }
+        - { name: configdb, emptyDir: {} }
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests: { storage: 5Gi }

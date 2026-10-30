@@ -1,0 +1,11 @@
+# Shared Kubernetes application. EKS overlay supplies registry images, storage and ingress.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: shipyard
+resources:
+  - namespace.yaml
+  - api.yaml
+  - web.yaml
+  - mongo.yaml
+  - network.yaml
+  - availability.yaml

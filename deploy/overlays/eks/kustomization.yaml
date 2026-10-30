@@ -1,0 +1,27 @@
+# Run scripts/promote.mjs to replace these local image names with published ECR digests.
+# Keep this overlay private until configured; deploy/argocd/application.yaml references it.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: shipyard
+resources:
+  - ../../base
+  - storage.yaml
+patches:
+  # Jenkins publishes linux/amd64 images; match the worker architecture explicitly.
+  - target: { kind: Deployment }
+    patch: |-
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value: { kubernetes.io/arch: amd64 }
+  - target: { kind: StatefulSet, name: mongo }
+    patch: |-
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value: { kubernetes.io/arch: amd64 }
+  - target: { kind: StatefulSet, name: mongo }
+    patch: |-
+      - op: add
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: shipyard-gp3
+# Digest entries are written here by scripts/promote.mjs; no mutable :latest promotions.
+images: []

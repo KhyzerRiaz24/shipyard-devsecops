@@ -1,0 +1,11 @@
+# Install kube-prometheus-stack first. Service port name `http` matches deploy/base/api.yaml.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: shipyard-api
+  namespace: monitoring
+  labels: { release: monitoring }
+spec:
+  namespaceSelector: { matchNames: [shipyard] }
+  selector: { matchLabels: { app: api } }
+  endpoints: [{ port: http, path: /metrics, interval: 15s }]

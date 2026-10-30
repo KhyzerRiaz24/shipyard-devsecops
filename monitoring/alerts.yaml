@@ -1,0 +1,35 @@
+# Uses real API metrics, not release-journal outcomes. Runbooks describe how to exercise these.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: shipyard
+  namespace: monitoring
+  labels: { release: monitoring }
+spec:
+  groups:
+    - name: shipyard-api
+      rules:
+        - alert: ShipyardAPIDown
+          expr: (sum(up{namespace="shipyard",service="api"}) or vector(0)) < 1
+          for: 2m
+          labels: { severity: critical }
+          annotations:
+            summary: Shipyard API target is unreachable
+            description: Inspect pods, events and database readiness using docs/runbooks.md.
+        - alert: ShipyardNoReadyAPIReplicas
+          expr: kube_deployment_status_replicas_available{namespace="shipyard",deployment="api"} < 1
+          for: 2m
+          labels: { severity: critical }
+          annotations:
+            { summary: No API replicas are available to receive traffic }
+        - alert: ShipyardHighErrorRate
+          expr: sum(rate(shipyard_http_requests_total{route=~"/api/.*",status=~"5.."}[5m])) / clamp_min(sum(rate(shipyard_http_requests_total{route=~"/api/.*"}[5m])), 0.001) > 0.05
+          for: 5m
+          labels: { severity: warning }
+          annotations: { summary: More than 5 percent of API requests fail }
+        - alert: ShipyardSlowRequests
+          expr: histogram_quantile(0.95, sum by (le) (rate(shipyard_http_request_duration_seconds_bucket{route=~"/api/.*"}[5m]))) > 0.5
+          for: 5m
+          labels: { severity: warning }
+          annotations:
+            { summary: API p95 response duration exceeds 500 milliseconds }

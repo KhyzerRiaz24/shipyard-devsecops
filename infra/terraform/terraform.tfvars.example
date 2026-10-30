@@ -1,0 +1,6 @@
+# Copy to terraform.tfvars and supply YOUR actual stable IAM ARN + public IP CIDR.
+aws_region          = "eu-west-2"
+project_name        = "shipyard"
+kubernetes_version  = "1.35"
+admin_principal_arn = "arn:aws:iam::123456789012:role/REPLACE_WITH_YOUR_ADMIN_ROLE"
+api_access_cidrs    = ["203.0.113.10/32"]

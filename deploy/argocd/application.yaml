@@ -1,0 +1,26 @@
+# Configure repositoryURL before applying. Argo CD reads desired state; Jenkins never needs cluster admin.
+# Secrets stay outside Git and are created before this Application starts syncing.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shipyard
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/KhyzerRiaz24/shipyard-devsecops.git
+    targetRevision: main
+    path: deploy/overlays/eks
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shipyard
+  # The autoscaler owns this field; self-heal must not repeatedly reset its decisions.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      name: api
+      namespace: shipyard
+      jsonPointers: [/spec/replicas]
+  syncPolicy:
+    automated: { prune: false, selfHeal: true }
+    syncOptions: [CreateNamespace=true, RespectIgnoreDifferences=true]

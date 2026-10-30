@@ -1,0 +1,18 @@
+# helm install monitoring prometheus-community/kube-prometheus-stack -n monitoring -f monitoring/values.yaml
+# Keep all dashboards private; use kubectl port-forward for access.
+grafana:
+  service: { type: ClusterIP }
+  defaultDashboardsTimezone: utc
+prometheus:
+  prometheusSpec:
+    retention: 3d
+    serviceMonitorSelector:
+      matchLabels: { release: monitoring }
+    ruleSelector:
+      matchLabels: { release: monitoring }
+alertmanager:
+  enabled: true
+  # Add an actual receiver before claiming paging/notifications work.
+prometheus-node-exporter:
+  enabled: false
+# Auto Mode nodes are managed; begin with application and Kubernetes metrics.

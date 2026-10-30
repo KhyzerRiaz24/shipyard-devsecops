@@ -1,0 +1,18 @@
+# Related: compose.yaml reads .env; only .env.example belongs in Git.
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+test-results/
+playwright-report/
+.cache/
+backups/
+evidence/*.json
+infra/terraform/.terraform/
+infra/terraform/*.tfstate*
+infra/terraform/*.tfplan
+infra/terraform/terraform.tfvars
+.DS_Store

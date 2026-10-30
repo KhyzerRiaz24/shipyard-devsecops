@@ -1,0 +1,32 @@
+{
+  "name": "shipyard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "An explained DevSecOps portfolio: release journal, delivery pipeline and AWS infrastructure.",
+  "type": "module",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
+    "build": "npm run build -w apps/web",
+    "test": "npm run test -w apps/api && npm run test -w apps/web",
+    "test:browser": "playwright test",
+    "check:config": "node scripts/check-config.mjs",
+    "check": "npm test && npm run build && npm run check:config && npm run check:secrets",
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "build:demo": "npm run build -w apps/web -- --mode demo",
+    "test:demo": "playwright test --config=playwright.demo.config.js",
+    "preview:demo": "npm run preview -w apps/web -- --mode demo --host 127.0.0.1 --port 4173"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "concurrently": "^9.2.0",
+    "prettier": "^3.9.10",
+    "yaml": "^2.8.1"
+  }
+}

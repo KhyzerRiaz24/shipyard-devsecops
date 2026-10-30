@@ -1,0 +1,11 @@
+# Ignore secrets, generated dependencies/builds and Terraform (which has its own formatter).
+node_modules
+**/dist
+package-lock.json
+.env*
+.cache
+backups
+evidence/*.json
+infra
+test-results
+playwright-report
