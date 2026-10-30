@@ -1,4 +1,5 @@
 /** App shell. Four navigable pages share the same live API data.
+ * useWorkspace.js loads data; mode.js selects the real API or the labelled free demo.
  * Overview -> release journal -> POST /api/releases -> app.js -> store.js -> MongoDB.
  * Architecture and Runbooks explain the corresponding infrastructure/docs; they aren't live cloud status.
  */

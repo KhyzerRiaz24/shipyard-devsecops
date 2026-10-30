@@ -4,6 +4,7 @@ Every authored source/configuration file starts with a purpose comment when its 
 
 ## Application
 
+- `apps/web/public/favicon.svg`, `og.png`: browser icon and public social-sharing preview.
 - `apps/web/index.html`: HTML entry; loads `src/main.jsx`.
 - `apps/web/src/main.jsx`: mounts React and imports `styles.css`.
 - `apps/web/src/App.jsx`: navigation, shared data loading, error states and modal ownership. Imports the four pages below.
@@ -87,3 +88,5 @@ Every authored source/configuration file starts with a purpose comment when its 
 ## Documentation
 
 The root README is the starting point. The other guides cover architecture, development, Jenkins, AWS deployment, operations, portfolio evidence and actual verification. File paths in explanations are repository-relative, so you can find them in any clone.
+
+The LinkedIn project description and post draft are in `docs/linkedin.md`.

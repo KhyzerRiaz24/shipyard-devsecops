@@ -34,3 +34,19 @@ The following need your account/repository configuration and live environments:
 - Off-cluster scheduled backups, production restore cutover and database high availability. The database has one member.
 
 No software can be promised to have zero bugs. This record identifies the checks that passed, their scope, and the remaining environment-dependent verification.
+
+## Refactor and free showcase — 30 October 2026
+
+The application shell now selects pages from one navigation definition. `useWorkspace.js` owns data loading and ignores stale refresh responses. `telemetry.js` owns request measurement/logging, so API routes remain readable. Purpose and connection comments remain present in the authored source.
+
+The free GitHub Pages build uses an explicit browser-storage adapter, with a visible demo banner and storage labels. It does not report a fake database connection or require an API token. The normal Docker build continues to use the real Express/MongoDB path.
+
+Local verification after these changes passed 20 API/database/UI/demo tests, two real-application browser tests, and two static-demo browser tests. Both production modes built successfully. The live GitHub Actions checks also passed on Linux, including real temporary MongoDB integration, Terraform validation, Kubernetes rendering, dependency audit and the demo browser checks.
+
+The public repository and workflow are available at:
+
+- Source: https://github.com/KhyzerRiaz24/shipyard-devsecops
+- Initial live checks: https://github.com/KhyzerRiaz24/shipyard-devsecops/actions/runs/41069816255
+- Workflow: https://github.com/KhyzerRiaz24/shipyard-devsecops/actions/workflows/check-and-deploy.yml
+
+The selected public hosting uses GitHub Pages and standard public-repository runners. No paid AWS resources were created. AWS/Jenkins/SonarQube deployment remains outside the verified live showcase scope.

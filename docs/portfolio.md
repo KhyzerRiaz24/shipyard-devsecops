@@ -2,6 +2,8 @@
 
 The value of this project comes from explaining its decisions and showing observed behaviour. Be precise about which parts ran locally and which ran in AWS.
 
+For the ready-to-copy project entry and post draft, see [LinkedIn wording](linkedin.md).
+
 ## A short demonstration
 
 1. Open the four pages and explain how React reaches Express through Nginx.
